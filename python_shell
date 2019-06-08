@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# python3.7
+
+import os,sys,json
+ceph_stat = os.popen("ceph -s -f json-pretty").read()
+ceph_stat_dict = json.loads(ceph_stat)
+print(type(ceph_stat_dict))
+print(ceph_stat_dict["health"])
+print(ceph_stat_dict["fsid"])
+for i in ceph_stat_dict :
+     print(i,ceph_stat_dict[i])

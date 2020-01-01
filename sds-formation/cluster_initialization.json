@@ -1,0 +1,57 @@
+{
+    "Description" : "this template will initialization a CBS&EOS environment.",
+    "Parameters": {
+        "ClusterURL": {
+            "Type": "String",
+            "Value": "http://10.255.20.121:8056/v1"
+        },
+        "AdminNetwork": {
+            "Type": "String",
+            "Value": "10.255.20.121/24"
+        },
+        "PublicNetwork": {
+            "Type": "String",
+            "Value": "10.255.20.121/24"
+        },
+        "PrivateNetwork": {
+            "Type": "String",
+            "Value": "10.255.30.121/24"
+        },
+        "GatewayNetwork": {
+            "Type": "String",
+            "Value": "10.255.20.121/24"
+        }
+    },
+    "Resources" : [
+        {
+            "Name": "bootnode",
+            "Type": "BootNode",
+            "Properties": {
+                "AdminNetwork": {
+                    "Ref": "AdminNetwork"
+                },
+                "PublicNetwork": {
+                    "Ref": "PublicNetwork"
+                },
+                "PrivateNetwork": {
+                    "Ref": "PrivateNetwork"
+                },
+                "GatewayNetwork": {
+                    "Ref": "GatewayNetwork"
+                },
+                "InstallerPath": "/opt/sds/installer/sds-release"
+            }
+        },
+        {
+            "Name": "admin",
+            "Type": "User",
+            "Properties": {
+                "Name": "admin",
+                "Email": "admin@xsky.com",
+                "Password": "admin",
+                "Enabled": true
+            },
+            "Sleep": 10
+        }
+    ]
+}

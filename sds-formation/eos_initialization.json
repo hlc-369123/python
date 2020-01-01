@@ -1,0 +1,220 @@
+{
+    "Description" : "this template will create a EOS environment.",
+    "Parameters": {
+        "ClusterURL": {
+            "Type": "String",
+            "Value": "http://10.255.20.121:8056/v1"
+        },
+        "AdminIPs_1" : {
+            "Type" : "String",
+            "Value" : "10.255.20.121"
+        },
+        "SSDPool_List" : {
+            "Type" : "Integer",
+            "Value" : 1
+        },
+        "HDDPool_List" : {
+            "Type" : "Integer",
+            "Value" : 2
+        },
+        "Host_List" : {
+            "Type" : "Integer",
+            "Value" : 3
+        }
+    },
+    "Resources" : [
+        {
+            "Name": "Token",
+            "Type" : "Token",
+            "Action" : "Create",
+            "Properties" : {
+                "Name" : "admin",
+                "Password" : "admin"
+            }
+        },
+        {
+            "Name": "Host1_SSDDiskList",
+            "Type": "DiskList",
+            "Properties": {
+                "Used": "false",
+                "DiskType": "SSD",
+                "Num": 1,
+                "HostiDs": [1]
+            }
+        },
+        {
+            "Name": "SSDosd_1",
+            "Type": "Osds",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "DiskIDs": {"Ref": "Host1_SSDDiskList"},
+                "Role": "index"
+            },
+            "Sleep": 5
+        },
+        {
+            "Name": "SSD_DiskList_Pool",
+            "Type": "IntegerList",
+            "Properties": {
+                "Attributes": [
+                    {"Ref": "SSDosd_1"}
+                ]
+            }
+        },
+        {
+            "Name": "SSDPool",
+            "Type": "Pool",
+            "Properties": {
+                "name": "SSDPool",
+                "ProtectionDomainID": 1,
+                "WaitInterval": 60,
+                "CheckInterval": 60,
+                "PoolType": "replicated",
+                "PoolRole": "index",
+                "OsdIDs": {"Ref": "SSD_DiskList_Pool"},
+                "Size": 1
+            }
+        },
+        {
+            "Name": "Host1_HDDDiskList",
+            "Type": "DiskList",
+            "Properties": {
+                "Used": "false",
+                "DiskType": "HDD",
+                "Num": 2,
+                "HostIDs": [1]
+            }
+        },
+        {
+            "Name": "HDDosd_1",
+            "Type": "Osds",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "DiskIDs": {"Ref": "Host1_HDDDiskList"},
+                "Role": "data"
+            },
+            "Sleep": 5
+        },
+        {
+            "Name": "HDD_DiskList_Pool",
+            "Type": "IntegerList",
+            "Properties": {
+                "Attributes": [
+                    {"Ref": "HDDosd_1"}
+                ]
+            }
+        },
+        {
+            "Name": "HDDPool",
+            "Type": "Pool",
+            "Properties": {
+                "name": "HDDPool",
+                "ProtectionDomainID": 1,
+                "WaitInterval": 60,
+                "CheckInterval": 60,
+                "PoolType": "replicated",
+                "PoolRole": "data",
+                "OsdIDs": {"Ref": "HDD_DiskList_Pool"},
+                "Size": 1
+            }
+        },
+        {
+            "Name": "ObjectStorage",
+            "Type": "ObjectStorage",
+            "Properties": {
+                "PoolID": {"Ref": "SSDPool"},
+                "ArchivePoolID": {"Ref": "HDDPool"}
+            }
+        },
+        {
+            "Name": "ObjectStorageUser",
+            "Type": "ObjectStorageUser",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "Name": "user1",
+                "Email": "user1@xsky.com",
+                "BucketQuotaMaxObjects": 500,
+                "BucketQuotaMaxSize": 1024000,
+                "UserQuotaMaxObjects": 5000,
+                "UserQuotaMaxSize": 10240000,
+                "Keys": [
+                    {
+                        "AccessKey": "5X8G67IR69DSAKF1ROC5",
+                        "SecretKey": "8bfKxvSzpxla2XUoQCmN5482znwxvY0k8pX1V2Nl"
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "ObjectStoragePolicy",
+            "Type": "ObjectStoragePolicy",
+            "WaitInterval": 60,
+            "CheckInterval": 60,
+            "Properties": {
+                "Name": "policy1",
+                "Compress": "false",
+                "Crypto": "false",
+                "DataPoolID": {"Ref": "HDDPool_List"},
+                "DataPoolIDs": [
+                    {"Ref": "HDDPool_List"}
+                ],
+                "IndexPoolID": {"Ref": "SSDPool_List"}
+            }
+        },
+        {
+            "Name": "ObjectStorageBucket",
+            "Type": "ObjectStorageBucket",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "Name": "bucket1",
+                "AllUserPermission": "read",
+                "OwnerID": {"Ref": "ObjectStorageUser"},
+                "PolicyID": {"Ref": "ObjectStoragePolicy"},
+                "QuotaMaxObjects": 2000,
+                "QuotaMaxSize": 2048000
+            }
+        },
+        {
+            "Name": "ObjectStorageGateway",
+            "Type": "ObjectStorageGateway",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "HostID": {"Ref": "Host_List"},
+                "Name": "s3_gateway",
+                "Port": "7483"
+            }
+        },
+        {
+            "Name": "NFSGateway",
+            "Type": "NFSGateway",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "HostID": {"Ref": "Host_List"},
+                "Name": "nfs_gateway",
+                "Port": "8480"
+            }
+        },
+        {
+            "Name": "S3LoadBalancerGroup",
+            "Type": "S3LoadBalancerGroup",
+            "WaitInterval": 60,
+            "CheckInterval": 10,
+            "Properties": {
+                "Name": "s3lbg1",
+                "Port": 8060,
+                "S3LoadBalancers": [
+                    {
+                        "HostID": {"Ref": "Host_List"},
+                        "VIP": "10.255.20.124"
+                    }
+                ]
+            }
+        }
+    ]
+}

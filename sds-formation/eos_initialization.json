@@ -1,35 +1,31 @@
 {
-    "Description" : "this template will create a EOS environment.",
+    "Description": "this template will create a EOS environment.",
     "Parameters": {
         "ClusterURL": {
             "Type": "String",
-            "Value": "http://10.255.20.121:8056/v1"
+            "Value": "http://10.255.20.122:8056/v1"
         },
-        "AdminIPs_1" : {
-            "Type" : "String",
-            "Value" : "10.255.20.121"
+        "SSDPool_List": {
+            "Type": "Integer",
+            "Value": 1
         },
-        "SSDPool_List" : {
-            "Type" : "Integer",
-            "Value" : 1
+        "HDDPool_List": {
+            "Type": "Integer",
+            "Value": 2
         },
-        "HDDPool_List" : {
-            "Type" : "Integer",
-            "Value" : 2
-        },
-        "Host_List" : {
-            "Type" : "Integer",
-            "Value" : 3
+        "Host_List": {
+            "Type": "Integer",
+            "Value": 1
         }
     },
-    "Resources" : [
+    "Resources": [
         {
             "Name": "Token",
-            "Type" : "Token",
-            "Action" : "Create",
-            "Properties" : {
-                "Name" : "admin",
-                "Password" : "admin"
+            "Type": "Token",
+            "Action": "Create",
+            "Properties": {
+                "Name": "admin",
+                "Password": "admin"
             }
         },
         {
@@ -162,7 +158,8 @@
                     {"Ref": "HDDPool_List"}
                 ],
                 "IndexPoolID": {"Ref": "SSDPool_List"}
-            }
+            },
+            "Sleep": 5
         },
         {
             "Name": "ObjectStorageBucket",
@@ -211,7 +208,7 @@
                 "S3LoadBalancers": [
                     {
                         "HostID": {"Ref": "Host_List"},
-                        "VIP": "10.255.20.124"
+                        "VIP": "10.255.20.125"
                     }
                 ]
             }

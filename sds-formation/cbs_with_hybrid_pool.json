@@ -1,0 +1,425 @@
+{
+  "Description": "this template will create a EOS environment.",
+  "Parameters": {
+    "ClusterURL": {
+      "Type": "String",
+      "Value": "http://12.1.1.10:8056/v1"
+    },
+    "AdminIPs_1": {
+      "Type": "StringList",
+      "Value": [
+        "12.1.1.11",
+        "12.1.1.12"
+      ]
+    },
+    "AdminIPs_2": {
+      "Type": "StringList",
+      "Value": [
+        "12.1.1.14",
+        "12.1.1.15",
+        "12.1.1.16"
+      ]
+    },
+    "Roles_1": {
+      "Type": "StringList",
+      "Value": [
+        "admin",
+        "monitor",
+        "block_storage_gateway"
+      ]
+    },
+    "Roles_2": {
+      "Type": "StringList",
+      "Value": [
+        "block_storage_gateway"
+      ]
+    }
+  },
+  "Resources": [
+    {
+      "Name": "Token",
+      "Type": "Token",
+      "Action": "Create",
+      "Properties": {
+        "Name": "admin",
+        "Password": "admin"
+      }
+    },
+    {
+      "Name": "Hosts_admin",
+      "Type": "Hosts",
+      "CheckInterval": 30,
+      "WaitInterval": 180,
+      "Properties": {
+        "AdminIPs": {
+          "Ref": "AdminIPs_1"
+        },
+        "Roles": {
+          "Ref": "Roles_1"
+        }
+      },
+      "Sleep": 10
+    },
+    {
+      "Name": "Hosts_block",
+      "Type": "Hosts",
+      "CheckInterval": 30,
+      "WaitInterval": 180,
+      "Properties": {
+        "AdminIPs": {
+          "Ref": "AdminIPs_2"
+        },
+        "Roles": {
+          "Ref": "Roles_2"
+        }
+      },
+      "Sleep": 10
+    },
+    {
+      "Name": "Host1_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          1
+        ]
+      }
+    },
+    {
+      "Name": "Host2_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          2
+        ]
+      }
+    },
+    {
+      "Name": "Host3_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          3
+        ]
+      }
+    },
+    {
+      "Name": "Partitions1",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host1_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Partitions2",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host2_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Partitions3",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host3_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Host1_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          1
+        ]
+      }
+    },
+    {
+      "Name": "Host2_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          2
+        ]
+      }
+    },
+    {
+      "Name": "Host3_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          3
+        ]
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host1_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions1"
+        },
+        "DiskiDs": {
+          "Ref": "Host1_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host2_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions2"
+        },
+        "DiskiDs": {
+          "Ref": "Host2_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host3_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions3"
+        },
+        "DiskiDs": {
+          "Ref": "Host3_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdDiskList_Pool",
+      "Type": "IntegerList",
+      "Properties": {
+        "Attributes": [
+          {
+            "Ref": "Hybrid_HybirdosdList_Host1_Pool"
+          },
+          {
+            "Ref": "Hybrid_HybirdosdList_Host2_Pool"
+          },
+          {
+            "Ref": "Hybrid_HybirdosdList_Host3_Pool"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "HybirdPool",
+      "Type": "Pool",
+      "WaitInterval": 120,
+      "CheckInterval": 60,
+      "Properties": {
+        "name": "HybirdPool",
+        "ProtectionDomainiD": 1,
+        "PoolType": "replicated",
+        "OsdiDs": {
+          "Ref": "Hybrid_HybirdDiskList_Pool"
+        },
+        "Size": 3
+      }
+    },
+    {
+      "Name": "Host4_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          4
+        ]
+      }
+    },
+    {
+      "Name": "Host5_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          5
+        ]
+      }
+    },
+    {
+      "Name": "Host6_SSDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "SSD",
+        "Num": 1,
+        "HostiDs": [
+          6
+        ]
+      }
+    },
+    {
+      "Name": "Partitions4",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host4_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Partitions5",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host5_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Partitions6",
+      "Type": "Partitions",
+      "Properties": {
+        "DiskiDs": {
+          "Ref": "Host6_SSDDiskList"
+        },
+        "NumPerDisk": 15
+      }
+    },
+    {
+      "Name": "Host4_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          4
+        ]
+      }
+    },
+    {
+      "Name": "Host5_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          5
+        ]
+      }
+    },
+    {
+      "Name": "Host6_HDDDiskList",
+      "Type": "DiskList",
+      "Properties": {
+        "Used": false,
+        "DiskType": "HDD",
+        "Num": 6,
+        "HostIDs": [
+          6
+        ]
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host4_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions4"
+        },
+        "DiskiDs": {
+          "Ref": "Host4_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host5_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions5"
+        },
+        "DiskiDs": {
+          "Ref": "Host5_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdosdList_Host6_Pool",
+      "Type": "Osds",
+      "Properties": {
+        "PartitioniDs": {
+          "Ref": "Partitions6"
+        },
+        "DiskiDs": {
+          "Ref": "Host6_HDDDiskList"
+        },
+        "Role": "data"
+      }
+    },
+    {
+      "Name": "Hybrid_HybirdDiskList_Pool2",
+      "Type": "IntegerList",
+      "Properties": {
+        "Attributes": [
+          {
+            "Ref": "Hybrid_HybirdosdList_Host4_Pool"
+          },
+          {
+            "Ref": "Hybrid_HybirdosdList_Host5_Pool"
+          },
+          {
+            "Ref": "Hybrid_HybirdosdList_Host6_Pool"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "HybirdPool2",
+      "Type": "Pool",
+      "WaitInterval": 120,
+      "CheckInterval": 60,
+      "Properties": {
+        "name": "HybirdPool",
+        "ProtectionDomainiD": 1,
+        "PoolType": "replicated",
+        "OsdiDs": {
+          "Ref": "Hybrid_HybirdDiskList_Pool2"
+        },
+        "Size": 3
+      }
+    }
+  ]
+}

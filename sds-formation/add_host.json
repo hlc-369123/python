@@ -1,0 +1,34 @@
+{
+    "Description" : "this template will create a host with given admin IP.",
+    "Parameters" : {
+        "ClusterURL" : {
+            "Type" : "String",
+            "Value" : "http://10.255.20.121:8056/v1"
+        },
+        "admin_ip" : {
+            "Type" : "String",
+            "Value" : "10.255.20.122"
+        }
+    },
+    "Resources" : [
+        {
+            "Name": "t1",
+            "Type" : "Token",
+            "Action" : "Create",
+            "Properties" : {
+                "Name" : "admin",
+                "Password" : "admin"
+            }
+        },
+        {
+            "Name" : "h1",
+            "Type" : "Host",
+            "Action" : "Create",
+            "WaitInterval" : 60,
+            "CheckInterval" : 180,
+            "Properties" : {
+                "AdminIP" : {"Ref": "admin_ip"}
+            }
+        }
+    ]
+}

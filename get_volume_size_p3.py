@@ -21,5 +21,6 @@ for volume in volume_file.readlines() :
     volume_info = json.loads(os.popen("rbd info %s/%s --format json" %(pool_name,volume.strip())).read())
     volume_size = volume_info["size"]
     volume_size_to += volume_size
+volume_file.close()
 volume_size_to = volume_size_to/1024/1024/1024
 print("pool_name: %s,volume_size: %s GB" % (pool_name,volume_size_to))

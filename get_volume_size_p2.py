@@ -6,8 +6,8 @@
 import os,sys,json
 os.system("ceph osd pool ls")
 pool_name = raw_input('pool_name>>>: ').strip()
-if_pool = os.popen("ceph osd pool ls|grep %s" % pool_name).read().strip()
-if pool_name != if_pool:
+if_pool = os.popen("ceph osd pool ls").read().strip()
+if pool_name not in if_pool:
     print "cat't find %s pool" % pool_name
     sys.exit(0)
 

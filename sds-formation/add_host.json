@@ -1,15 +1,19 @@
 {
+    // 模板描述;
     "Description" : "this template will create a host with given admin IP.",
     "Parameters" : {
+        // 集群主节点的api地址;
         "ClusterURL" : {
             "Type" : "String",
             "Value" : "http://10.255.20.121:8056/v1"
         },
+        //新添加节点ip<10.255.20.122>;
         "admin_ip" : {
             "Type" : "String",
             "Value" : "10.255.20.122"
         }
     },
+    //通过集群用户名<admin>密码<admin>生成临时token;
     "Resources" : [
         {
             "Name": "t1",
@@ -20,6 +24,7 @@
                 "Password" : "admin"
             }
         },
+        //添加节点，添加过程中检查180次，每次60秒;
         {
             "Name" : "h1",
             "Type" : "Host",

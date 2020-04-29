@@ -1,27 +1,34 @@
 {
+    // 模板描述,<此模版用于创建EOS环境>；
     "Description" : "this template will create a EOS environment.",
     "Parameters": {
+        // 集群主节点的api地址
         "ClusterURL": {
             "Type": "String",
             "Value": "http://10.255.20.121:8056/v1"
         },
+        // 节点Admin ip；
         "AdminIPs_1" : {
             "Type" : "String",
             "Value" : "10.255.20.121"
         },
+        // 定义SSD_pool列表；
         "SSDPool_List" : {
             "Type" : "Integer",
             "Value" : 2
         },
+        // 定义HDD_pool列表；
         "HDDPool_List" : {
             "Type" : "Integer",
             "Value" : 3
         },
+        // 定义Host列表；
         "Host_List" : {
             "Type" : "Integer",
             "Value" : 4
         }
     },
+    // 通过集群用户名<admin>密码<admin>生成临时token;
     "Resources" : [
         {
             "Name": "Token",
@@ -32,6 +39,7 @@
                 "Password" : "admin"
             }
         },
+        // 取节点1的一个SSD;
         {
             "Name" : "Host1_SSDDiskList",
             "Type" : "DiskList",
@@ -42,6 +50,7 @@
                 "HostiDs": [1]
             }
         },
+        // 将SSD分两个分区；
         {
             "Name" : "Partitions1",
             "Type" : "Partitions",
@@ -50,6 +59,7 @@
                 "NumPerDisk" : 2
             }
         },
+        // 取节点1的两个HDD；
        {
             "Name": "Host1_HDDDiskList",
             "Type": "DiskList",
@@ -60,6 +70,7 @@
                 "HostIDs": [1]
             }
         },
+        // 创建混合盘类型为data的osd；
         {
             "Name": "Hybrid_HybirdosdList_Host1_Pool",
             "Type": "Osds",
@@ -73,6 +84,7 @@
                     "Role": "data"
             }
         },
+        // 定义混合盘存储池列表；
         {
             "Name": "Hybrid_HybirdDiskList_Pool",
             "Type": "IntegerList",
@@ -82,6 +94,7 @@
                 ]
             }
         },
+        // 创建副本混合盘存储池；
         {
             "Name" : "HybirdPool",
             "Type" : "Pool",

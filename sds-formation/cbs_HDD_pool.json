@@ -1,0 +1,58 @@
+{
+    "Description":"data protection cluster",
+    "Parameters":{
+    // 集群主节点的api地址
+        "ClusterURL":{
+            "Type":"String",
+            "Value":"http://10.255.20.122:8056/v1"
+        }
+    },
+    // 新建登录token,为后续资源常见提供登录权限
+    "Resources":[
+        {
+            "Name":"token",
+            "Type":"Token",
+            "Properties":{
+                "Name":"admin",
+                "Password":"admin"
+            }
+        },
+        // 获取节点所有未使用的HDD硬盘
+        {
+            "Name":"HDDDiskList",
+            "Type":"DiskList",
+            "Properties":{
+                "Used":false,
+                "DiskType":"HDD"
+            }
+        },
+        // 将获取到的硬盘，创建为data类型的osd
+        {
+            "Name":"HDDosd",
+            "Type":"Osds",
+            "WaitInterval":120,
+            "CheckInterval":30,
+            "Properties":{
+                "DiskIDs":{
+                    "Ref":"HDDDiskList"
+                },
+                "Role":"data"
+            },
+            "Sleep":10
+        },
+        // 将HDDosd创建1副本策略的存储池
+        {
+            "Name":"HDDPool",
+            "Type":"Pool",
+            "Properties":{
+                "name":"HDDPool",
+                "ProtectionDomainID":1,
+                "PoolType":"replicated",
+                "OsdIDs":{
+                    "Ref":"HDDosd"
+                },
+                "Size":1
+            }
+        }
+    ]
+}

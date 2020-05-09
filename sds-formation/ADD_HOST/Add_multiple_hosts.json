@@ -1,0 +1,60 @@
+{
+    // 模板描述；
+    "Description":"The template will add EOS host",
+     // 此模块主要定义参数；
+    "Parameters":{
+        // 集群主节点的api地址;
+        "ClusterURL":{
+            "Type":"String",
+            "Value":"http://10.255.20.121:8056/v1"
+        },
+        // 定义添加节点ip;
+        "AdminIPs_1":{
+            "Type":"StringList",
+            "Value":[
+                "10.255.20.122",
+                "10.255.20.123"
+            ]
+        },
+        // 定义添加节点的角色；
+        "Roles_1":{
+            "Type":"StringList",
+            "Value":[
+                "admin",
+                "monitor",
+                "block_storage_gateway",
+                "s3_gateway",
+                "nfs_gateway"
+            ]
+        }
+    },
+    // 以下为需要创建的资源；
+    "Resources":[
+        {
+            // 使用集群UI用户名密码，创建token用于以下部署(或者使用“-t”指定集群已有的token)；
+            "Name":"Token",
+            "Type":"Token",
+            "Action":"Create",
+            "Properties":{
+                "Name":"admin",
+                "Password":"admin"
+            }
+        },
+        {
+            // 添加节点，等待60s后，间隔120秒检查一次资源是否创建成功（如没有定义默认间隔30s，检查30次）；
+             "Name":"Hosts_vol",
+            "Type":"Hosts",
+            "CheckInterval":60,
+            "WaitInterval":120,
+            "Properties":{
+                "AdminIPs":{
+                    "Ref":"AdminIPs_1"
+                },
+                "Roles":{
+                    "Ref":"Roles_1"
+                }
+            },
+            "Sleep":10
+        }
+    ]
+}

@@ -1,0 +1,139 @@
+{
+	// 模板描述
+	"Description": "data protection cluster",
+	// 模板描述
+	"Parameters": {
+		// 集群主节点的api地址
+		"ClusterURL": {
+			"Type": "String",
+			"Value": "http://172.20.196.210:8056/v1"
+		},
+		// 网络配置
+		"AdminNetwork": {
+			"Type": "String",
+			"Value": "172.20.196.210/16"
+		},
+		"PublicNetwork": {
+			"Type": "String",
+			"Value": "172.20.196.210/16"
+        },
+		"PrivateNetwork": {
+			"Type": "String",
+			"Value": "172.20.196.210/16"
+        },
+		"GatewayNetwork": {
+			"Type": "String",
+			"Value": "172.20.0.1/16"
+        },
+        // 节点2的IP
+		"Node2": {
+			"Type": "String",
+			"Value": "172.20.195.198"
+		},
+		// 节点3的IP
+		"Node3": {
+			"Type": "String",
+			"Value": "172.20.198.209"
+		}
+	},
+	// 集群资源定义
+	"Resources": [
+		// 主节点定义
+		{
+			"Name": "bootnode",
+			"Type": "BootNode",
+			"Properties": {
+				"AdminNetwork": {
+					"Ref": "AdminNetwork"
+				},
+				"PublicNetwork": {
+					"Ref": "PublicNetwork"
+				},
+				"PrivateNetwork": {
+					"Ref": "PrivateNetwork"
+				},
+				"GatewayNetwork": {
+					"Ref": "GatewayNetwork"
+				},
+				"InstallerPath": "/opt/sds/installer/sds-release"
+			}
+		},
+		// 新建管理账号信息
+		{
+			"Name": "admin",
+			"Type": "User",
+			"Properties": {
+				"Name": "admin",
+				"Email": "admin@test.com",
+				"Password": "admin",
+				"Enabled": true
+			},
+			"Sleep": 10
+		},
+		// 新建登录token,为后续资源常见提供登录权限
+		{
+			"Name": "token",
+			"Type": "Token",
+			"Properties": {
+				"Name": "admin",
+				"Password": "admin"
+			}
+		},
+		// 2号节点信息，会根据该信息给2号节点机器安装sds
+		{
+			"Name": "Host2",
+			"Type": "Host",
+			"Properties": {
+				"AdminIP": {
+					"Ref": "Node2"
+				},
+				"Roles": ["admin", "block_storage_gateway", "monitor"]
+			},
+			"Sleep": 10
+		},
+		// 同上
+		{
+            "Name": "Host3",
+			"Type": "Host",
+			"Properties": {
+				"AdminIP": {
+					"Ref": "Node3"
+				},
+				"Roles": ["admin", "block_storage_gateway", "monitor"]
+			},
+			"Sleep": 10
+		},
+        {
+            "Name" : "HDDDiskList",
+            "Type" : "DiskList",
+            "Properties" : {
+                "Used" : false,
+                "DiskType" : "HDD"
+            }
+        },
+        // 创建osd
+        {
+            "Name" : "HDDosd",
+            "Type" : "Osds",
+	    "WaitInterval": 120,
+            "CheckInterval": 30,
+            "Properties" : {
+                    "DiskIDs" : {"Ref" : "HDDDiskList"},
+                    "Role": "data"
+            },
+	    "Sleep": 10
+        },
+        // 使用之前的创建的数据盘创建数据pool
+        {
+            "Name" : "HDDPool",
+            "Type" : "Pool",
+            "Properties" : {
+                "name" : "HDDPool",
+                    "ProtectionDomainID" : 1,
+                    "PoolType" : "replicated",
+                    "OsdIDs" : {"Ref" : "HDDosd"},
+                    "Size" : 3
+	    }
+        }
+   ]
+}

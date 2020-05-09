@@ -1,0 +1,192 @@
+{
+	// 模板描述
+	"Description": "data protection cluster",
+	// 模板描述
+	"Parameters": {
+		// 集群主节点的api地址
+		"ClusterURL": {
+			"Type": "String",
+			"Value": "http://172.16.212.181:8056/v1"
+		},
+		// 网络配置
+		"AdminNetwork": {
+			"Type": "String",
+			"Value": "172.16.212.0/24"
+		},
+		"PublicNetwork": {
+                        "Type": "String",
+			"Value": "10.10.10.0/24"
+                },
+		"PrivateNetwork": {
+                        "Type": "String",
+			"Value": "10.10.10.0/24"
+                },
+		"GatewayNetwork": {
+                        "Type": "String",
+                       "Value": "10.10.10.0/24"
+                },
+        // 节点2的IP
+		"Node2": {
+		        "Type": "String",
+		        "Value": "172.16.212.182"
+		},
+		// 节点3的IP
+		"Node3": {
+		        "Type": "String",
+		        "Value": "172.16.212.183"
+		},
+		// 节点4的IP
+		"Node4": {
+		        "Type": "String",
+		        "Value": "172.16.212.184"
+		}
+	},
+	// 集群资源定义
+	"Resources": [
+		// 主节点定义
+		{
+			"Name": "bootnode",
+			"Type": "BootNode",
+			"Properties": {
+				"AdminNetwork": {
+					"Ref": "AdminNetwork"
+				},
+				"PublicNetwork": {
+					"Ref": "PublicNetwork"
+				},
+				"PrivateNetwork": {
+					"Ref": "PrivateNetwork"
+				},
+				"GatewayNetwork": {
+					"Ref": "GatewayNetwork"
+				},
+				"InstallerPath": "/opt/sds/installer/sds-release"
+			}
+		},
+		// 新建管理账号信息
+		{
+			"Name": "admin",
+			"Type": "User",
+			"Properties": {
+				"Name": "admin",
+				"Email": "admin@test.com",
+				"Password": "admin",
+				"Enabled": true
+			},
+			"Sleep": 5
+		},
+		// 新建登录token,为后续资源常见提供登录权限
+		{
+			"Name": "token",
+			"Type": "Token",
+			"Properties": {
+				"Name": "admin",
+				"Password": "admin"
+			}
+		},
+		// 2号节点信息，会根据该信息给2号节点机器安装sds
+		{
+                        "Name": "Host2",
+			"Type": "Host",
+			"Properties": {
+				"AdminIP": {
+					"Ref": "Node2"
+				},
+				"Roles": ["admin", "block_storage_gateway", "monitor"]
+			},
+			"Sleep": 5
+		},
+		// 同上
+		{
+                        "Name": "Host3",
+			"Type": "Host",
+			"Properties": {
+				"AdminIP": {
+					"Ref": "Node3"
+				},
+				"Roles": ["admin", "block_storage_gateway", "monitor"]
+			},
+			"Sleep": 5
+		},
+		// 同上
+		{
+			"Name": "Host4",
+			"Type": "Host",
+			"Properties": {
+				"AdminIP": {
+					"Ref": "Node4"
+				},
+				"Roles": ["admin", "block_storage_gateway"]
+			},
+			"Sleep": 5
+		},
+		// 获取一个未使用的HDD盘
+        {
+            "Name": "HDDModify",
+            "Type": "DiskList",
+            "Properties": {
+                "Used": false,
+                "DiskType": "HDD",
+                "Device" : "sdb"
+            }
+        },
+        // 模拟一个SSD盘，更新HDD盘为SSD盘
+        {
+            "Name": "HDDModify",
+            "Type": "DiskList",
+            "Action": "Update",
+            "Properties": {
+                "DiskType": "SSD"
+            }
+        },
+        // 获取一个未使用的SSD盘
+        {
+            "Name": "SSDDiskList",
+            "Type": "DiskList",
+            "Properties": {
+                "Used": false,
+                "DiskType": "SSD"
+            }
+        },
+        // 创建新的磁盘分区列表
+        {
+            "Name" : "Partitions",
+            "Type" : "Partitions",
+            "Properties" : {
+                "DiskIDs" : {"Ref": "SSDDiskList"},
+	        "NumPerDisk" : 3
+    	    }
+    	},
+    	// 获取HDD磁盘列表
+        {
+            "Name" : "HDDDiskList",
+            "Type" : "DiskList",
+            "Properties" : {
+                "Used" : false,
+                "DiskType" : "HDD"
+            }
+        },
+        // 创建osd
+        {
+            "Name" : "Hybirdosd",
+            "Type" : "Osds",
+            "Properties" : {
+                "PartitionIDs" : {"Ref" : "Partitions"},
+                "DiskIDs" : {"Ref" : "HDDDiskList"},
+                "Role": "data"
+            }
+        },
+        // 创建pool
+        {
+            "Name" : "HybirdPool",
+            "Type" : "Pool",
+            "Properties" : {
+                "name" : "HybirdPool",
+                "ProtectionDomainID" : 1,
+                "PoolType" : "replicated",
+                "OsdIDs" : {"Ref" : "Hybirdosd"},
+                "Size" : 3
+	    }
+        }
+   ]
+}

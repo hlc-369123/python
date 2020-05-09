@@ -12,16 +12,15 @@ if pool_name not in if_pool:
     sys.exit(0)
 
 volume_list = os.popen("rbd ls %s" % pool_name).read().strip()
-volume_file = open("/tmp/volume_list","w")
+with open("/tmp/volume_list","w") as volume_file:
 volume_file.write(volume_list)
-volume_file.close()
 
-volume_file = open("/tmp/volume_list","r")
+with open("/tmp/volume_list","r") as volume_file:
 volume_size_to = 0
 for volume in volume_file.readlines() :
     volume_info = json.loads(os.popen("rbd info %s/%s --format json" %(pool_name,volume.strip())).read())
     volume_size = volume_info["size"]
     volume_size_to += volume_size
-volume_file.close()
+
 volume_size_to = volume_size_to/1024/1024/1024
 print "pool_name: %s,volume_size: %s GB" % (pool_name,volume_size_to)

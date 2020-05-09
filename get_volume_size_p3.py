@@ -8,19 +8,18 @@ pool_name = input('pool_name>>>: ').strip()
     if_pool = os.popen("ceph osd pool ls").read().strip()
 if pool_name not in if_pool:
     print("cat't find %s pool" % pool_name)
-    sys.exit(0)
-
+    sys.exit(1)
+ 
 volume_list = os.popen("rbd ls %s" % pool_name).read().strip()
-volume_file = open("/tmp/volume_list","w",encoding="utf-8")
+with open("/tmp/volume_list","w",encoding="utf-8") as volume_file:
 volume_file.write(volume_list)
-volume_file.close()
-
-volume_file = open("/tmp/volume_list","r",encoding="utf-8")
+ 
+with open("/tmp/volume_list","r",encoding="utf-8") as volume_file:
 volume_size_to = 0
 for volume in volume_file.readlines() :
     volume_info = json.loads(os.popen("rbd info %s/%s --format json" %(pool_name,volume.strip())).read())
     volume_size = volume_info["size"]
     volume_size_to += volume_size
-volume_file.close()
+ 
 volume_size_to = volume_size_to/1024/1024/1024
 print("pool_name: %s,volume_size: %s GB" % (pool_name,volume_size_to))

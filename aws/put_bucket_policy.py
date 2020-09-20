@@ -1,0 +1,41 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#__author__ : Hlc
+#__date__   : 2020/9/20
+#  设置存储桶的策略
+
+import logging
+import boto3,json
+from botocore.exceptions import ClientError
+
+
+class CONNECTION(object):
+    def __init__(self, url=None):
+        self.client = boto3.client('s3', endpoint_url=url)
+
+    def Put_bucket_policy(self, bucket_name=None):
+        bucket_policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Sid': 'AddPerm',
+                'Effect': 'Allow',
+                'Principal': '*',
+                'Action': ['s3:GetObject'],
+                'Resource': 'arn:aws:s3:::{}/*'.format(bucket_name)
+            }]
+        }
+
+        bucket_policy = json.dumps(bucket_policy)
+        try:
+            response = self.client.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
+            print(json.dumps(response, sort_keys=True, indent=4, separators=(',', ':')))
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return response
+
+if __name__ == '__main__':
+    url = "http://172.16.68.100:7480"
+    # url = "http://10.255.20.121:7480"
+    conn = CONNECTION(url)
+    conn.Put_bucket_policy("bucket01")

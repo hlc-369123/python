@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #__author__ : Hlc
 #__date__   : 2020/9/20
-# 下载一个文件，并显示下载进度
+# 上传一个文件，并显示下载进度
 
 import sys,os,threading,boto3
 from s3transfer import S3Transfer
